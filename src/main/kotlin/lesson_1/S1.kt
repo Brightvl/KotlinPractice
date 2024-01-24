@@ -74,17 +74,12 @@ fun multiplyBy(num1: Int?, num2: Int) = if (num1 != null) num1 * num2 else null
 fun task3(a: Int, b: Int, c: Int) {
     var d: Int = 0
     for (i in 1..b * 2 + 1) {
-        if (i != 1) {
-            if (i < b+2) {
-                d += c
-            } else {
-                d -= c
-            }
-        }
+        if (i != 1) if (i < b + 2) d += c else d -= c
         for (j in 1..a + d) {
             print("*")
 
         }
         println()
     }
+    TODO("Изменить решение" )
 }

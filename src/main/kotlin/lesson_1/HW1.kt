@@ -1,5 +1,6 @@
 package lesson_1
 
+
 /**
  * Написать программу, которая обрабатывает введённые пользователем в консоль команды:
  * exit
@@ -17,3 +18,22 @@ package lesson_1
  * add Tom email tom@example.com
  * add Tom phone +7876743558
  */
+
+fun main() {
+    var text = input()
+
+    while (text != "exit") {
+        text = input()
+    }
+}
+
+fun input(): String? {
+    println("Введите текст")
+    return readlnOrNull()
+}
+
+fun choice(input: String) {
+    when {
+
+    }
+}

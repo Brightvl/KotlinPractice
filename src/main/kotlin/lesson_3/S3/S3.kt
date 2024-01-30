@@ -1,4 +1,4 @@
-package lesson_3
+package lesson_3.S3
 
 data class Entry(
     val city: String,

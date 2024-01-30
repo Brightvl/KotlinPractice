@@ -1,4 +1,4 @@
-package lesson_3
+package lesson_3.S3
 
 /*
 Написать функцию-расширение calc к классу List, такую что

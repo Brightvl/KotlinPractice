@@ -26,31 +26,36 @@ package lesson_2.HW2
  * Выводим на экран получившийся экземпляр Command
  * Если isValid для команды возвращает false, выводим help. Если true, обрабатываем команду внутри when.
  */
-
-
 //region sealed class
 sealed class Command {
     abstract fun isValid(): Boolean
 }
 
 /**
- *  Класс данных, который представляет команды для добавления телефона или email
+ *  Класс данных, который представляет команды для добавления телефона
  */
-data class AddContact(val name: String, val phone: String? = null, val email: String? = null) : Command() {
-    override fun isValid() = phone?.let { Regex("""^\+\d+$""").matches(it) } ?: Regex("""^[a-zA-Z]+@[a-zA-Z]+\.[a-zA-Z]+$""").matches(email!!)
+data class AddPhone(val name: String, val phone: String) : Command() {
+    override fun isValid() = Regex("""^\+\d+$""").matches(phone)
+}
+
+/**
+ *  Класс данных, который представляет команды для добавления email
+ */
+data class AddEmail(val name: String, val email: String) : Command() {
+    override fun isValid() = Regex("""^[a-zA-Z]+@[a-zA-Z]+\.[a-zA-Z]+$""").matches(email)
 }
 
 /**
  * Объект, который представляет команды помощи
  */
-data object Help : Command() {
+object Help : Command() {
     override fun isValid() = true
 }
 
 /**
  * Объект, который представляет команды выхода
  */
-data object Exit : Command() {
+object Exit : Command() {
     override fun isValid() = true
 }
 //endregion
@@ -72,12 +77,17 @@ fun main() {
             when (command) {
                 is Exit -> break
                 is Help -> showCommands()
-                is AddContact -> {
+                is AddPhone -> {
                     val person = contacts.getOrPut(command.name) { Person(command.name) }
                     person.phone = command.phone
+                    lastPerson = person
+                    println("Добавлен контакт для ${person.name}: Телефон=${person.phone}")
+                }
+                is AddEmail -> {
+                    val person = contacts.getOrPut(command.name) { Person(command.name) }
                     person.email = command.email
                     lastPerson = person
-                    println("Добавлен контакт для ${person.name}: Телефон=${person.phone}, Email=${person.email}")
+                    println("Добавлен контакт для ${person.name}: Email=${person.email}")
                 }
             }
         } catch (e: IllegalArgumentException) {
@@ -92,6 +102,7 @@ fun main() {
  * Функция считывает ввод пользователя
  */
 fun readCommand(): Command {
+    print("Введите команду: ")
     val input = readln().split(" ")
     return when (input[0]) {
         "exit" -> Exit
@@ -99,8 +110,8 @@ fun readCommand(): Command {
         "add" -> {
             val name = input[1]
             when (input[2]) {
-                "phone" -> AddContact(name, phone = input[3])
-                "email" -> AddContact(name, email = input[3])
+                "phone" -> AddPhone(name, phone = input[3])
+                "email" -> AddEmail(name, email = input[3])
                 else -> throw IllegalArgumentException("Неверная команда")
             }
         }
@@ -115,4 +126,3 @@ fun showCommands() {
     val commands = listOf("exit", "help", "add <Имя> phone <Номер телефона>", "add <Имя> email <Адрес электронной почты>")
     println("Доступные команды: ${commands.joinToString(", ")}")
 }
-

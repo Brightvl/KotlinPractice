@@ -1,4 +1,4 @@
-package lesson_2
+package lesson_2.S2
 
 fun printOperationResult(operation: Operation) {
     val result = operation.calculate()

@@ -21,57 +21,60 @@ package lesson_1
  * add Tom phone +7876743558
  */
 
-// хранилище контактов
-val contacts = HashMap<String, MutableMap<String, String>>()
-
-/**
- * Для правильной разбивки и добавления в словарь contacts
- */
-private fun addContact(name: String, contactType: String, value: String) {
-    if (contactType == "phone") {
-        if (Regex("""^\+\d+$""").matches(value)) { // строка начинается с + и ы строке одни цифры
-            contacts[name] = mutableMapOf("phone" to value) // phone - ключ
-            println("Added phone number for $name: $value")
-        } else {
-            println("Error: Invalid phone number format")
-        }
-    } else if (contactType == "email") {
-        if (Regex("""^[a-zA-Z]+@[a-zA-Z]+\.[a-zA-Z]+$""").matches(value)) { //  строка по email
-            contacts[name] = mutableMapOf("email" to value)
-            println("Added email for $name: $value")
-        } else {
-            println("Error: Invalid email format")
-        }
-    }
-}
-
 fun main() {
     runProgram()
 }
+
+val contacts = HashMap<String, MutableMap<String, String>>()
 
 private fun runProgram() {
     while (true) {
         println("Введите команду ")
         when (val command = readlnOrNull()) { //switch
             "exit" -> break
-            "help" -> println(
-                "Доступные команды: " +
-                        "exit, " +
-                        "help, " +
-                        "add <Имя> phone <Номер телефона>, " +
-                        "add <Имя> email <Адрес электронной почты>"
-            )
-
-            else -> { // как default в java
-                val parts = command?.split(" ") // разбиваем
-                if (parts?.size == 4 && parts[2] == "phone") {
-                    addContact(parts[1], "phone", parts[3])
-                } else if (parts?.size == 4 && parts[2] == "email") {
-                    addContact(parts[1], "email", parts[3])
-                } else {
-                    println("Error: Invalid command format")
-                }
-            }
+            "help" -> showCommands()
+            else -> addContact(command)
         }
     }
+}
+
+private fun addContact(command: String?) {
+    val parts = command?.split(" ") // разбиваем
+    if (parts?.size == 4 && parts[0] == "add") {
+        if (parts[2] == "phone") {
+            addPhone(parts[1], parts[3])
+        } else if (parts[2] == "email") {
+            addEmail(parts[1], parts[3])
+        }
+    } else {
+        println("Error: Invalid command format")
+    }
+}
+
+fun addEmail(value: String, name: String) {
+    if (Regex("""^[a-zA-Z]+@[a-zA-Z]+\.[a-zA-Z]+$""").matches(value)) { //  строка по email
+        contacts[name] = mutableMapOf("email" to value)
+        println("Added email for $name: $value")
+    } else {
+        println("Error: Invalid email format")
+    }
+}
+
+fun addPhone(name: String, value: String) {
+    if (Regex("""^\+\d+$""").matches(value)) { // строка начинается с + и ы строке одни цифры
+        contacts[name] = mutableMapOf("phone" to value) // phone - ключ
+        println("Added phone number for $name: $value")
+    } else {
+        println("Error: Invalid phone number format")
+    }
+}
+
+private fun showCommands() {
+    println(
+        "Доступные команды: " +
+                "exit, " +
+                "help, " +
+                "add <Имя> phone <Номер телефона>, " +
+                "add <Имя> email <Адрес электронной почты>"
+    )
 }

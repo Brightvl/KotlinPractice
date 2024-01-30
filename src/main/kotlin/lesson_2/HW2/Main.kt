@@ -12,10 +12,10 @@ package lesson_2.HW2
  * — Напишите функцию readCommand(): Command, которая читает команду из текстового ввода, распознаёт её и возвращает
  * один из классов-наследников Command, соответствующий введённой команде.
  *
-// * — Создайте data класс Person, который представляет собой запись о человеке. Этот класс должен содержать поля:
-// * name – имя человека
-// * phone – номер телефона
-// * email – адрес электронной почты
+ * — Создайте data класс Person, который представляет собой запись о человеке. Этот класс должен содержать поля:
+ * name – имя человека
+ * phone – номер телефона
+ * email – адрес электронной почты
  *
  * — Добавьте новую команду show, которая выводит последнее значение, введённой с помощью команды add. Для этого
  * значение должно быть сохранено в переменную типа Person. Если на момент выполнения команды show не было ничего
@@ -28,24 +28,29 @@ package lesson_2.HW2
  */
 
 
-//region sealed
-sealed interface Command {
-    fun isValid(): Boolean
+//region sealed class
+sealed class Command {
+    abstract fun isValid(): Boolean
 }
 
-data class AddPhone(val name: String, val phone: String) : Command {
-    override fun isValid() = Regex("""^\+\d+$""").matches(phone)
+/**
+ *  Класс данных, который представляет команды для добавления телефона или email
+ */
+data class AddContact(val name: String, val phone: String? = null, val email: String? = null) : Command() {
+    override fun isValid() = phone?.let { Regex("""^\+\d+$""").matches(it) } ?: Regex("""^[a-zA-Z]+@[a-zA-Z]+\.[a-zA-Z]+$""").matches(email!!)
 }
 
-data class AddEmail(val name: String, val email: String) : Command {
-    override fun isValid() = Regex("""^[a-zA-Z]+@[a-zA-Z]+\.[a-zA-Z]+$""").matches(email)
-}
-
-object Help : Command {
+/**
+ * Объект, который представляет команды помощи
+ */
+data object Help : Command() {
     override fun isValid() = true
 }
 
-object Exit : Command {
+/**
+ * Объект, который представляет команды выхода
+ */
+data object Exit : Command() {
     override fun isValid() = true
 }
 //endregion
@@ -67,53 +72,47 @@ fun main() {
             when (command) {
                 is Exit -> break
                 is Help -> showCommands()
-                is AddPhone -> {
+                is AddContact -> {
                     val person = contacts.getOrPut(command.name) { Person(command.name) }
                     person.phone = command.phone
-                    lastPerson = person
-                    println("Added phone number for ${person.name}: ${person.phone}")
-                }
-
-                is AddEmail -> {
-                    val person = contacts.getOrPut(command.name) { Person(command.name) }
                     person.email = command.email
                     lastPerson = person
-                    println("Added email for ${person.name}: ${person.email}")
+                    println("Добавлен контакт для ${person.name}: Телефон=${person.phone}, Email=${person.email}")
                 }
             }
         } catch (e: IllegalArgumentException) {
-            println("Ошибка: Неверная команда")
+            println("Ошибка: ${e.message}")
         }
     }
 
-    lastPerson?.let { println("Last added person: $it") } ?: println("Not initialized")
+    lastPerson?.let { println("Последний добавленный человек: $it") } ?: println("Не инициализирован")
 }
 
-
+/**
+ * Функция считывает ввод пользователя
+ */
 fun readCommand(): Command {
-    val input = readLine()!!.split(" ")
+    val input = readln().split(" ")
     return when (input[0]) {
         "exit" -> Exit
         "help" -> Help
         "add" -> {
             val name = input[1]
             when (input[2]) {
-                "phone" -> AddPhone(name, input[3])
-                "email" -> AddEmail(name, input[3])
-                else -> throw IllegalArgumentException("Invalid command")
+                "phone" -> AddContact(name, phone = input[3])
+                "email" -> AddContact(name, email = input[3])
+                else -> throw IllegalArgumentException("Неверная команда")
             }
         }
-
-        else -> throw IllegalArgumentException("Invalid command")
+        else -> throw IllegalArgumentException("Неверная команда")
     }
 }
 
+/**
+ * Функция выводит список доступных команд
+ */
 fun showCommands() {
-    println(
-        "Доступные команды: " +
-                "exit, " +
-                "help, " +
-                "add <Имя> phone <Номер телефона>, " +
-                "add <Имя> email <Адрес электронной почты>"
-    )
+    val commands = listOf("exit", "help", "add <Имя> phone <Номер телефона>", "add <Имя> email <Адрес электронной почты>")
+    println("Доступные команды: ${commands.joinToString(", ")}")
 }
+

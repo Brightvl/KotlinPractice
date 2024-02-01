@@ -90,7 +90,6 @@ fun readCommand(): Command {
                 else -> throw IllegalArgumentException("Неверная команда")
             }
         }
-
         else -> throw IllegalArgumentException("Неверная команда")
     }
 }
@@ -122,36 +121,3 @@ fun main() {
         }
     }
 }
-
-
-//fun main() {
-//    val contacts = mutableMapOf<String, Person>()
-//    var lastPerson: Person? = null
-//
-//    while (true) {
-//        try {
-//            when (val command = readCommand()) {
-//                is AddEmail -> {
-//                    if (isValid()) {
-//                        val existingPerson = contacts.getOrPut(command.name) { Person(command.name) }
-//                        existingPerson.email = command.email
-//                        lastPerson = existingPerson
-//                    }
-//                }
-//
-//                is AddPhone -> {
-//                    if (isValid()) {
-//                        val existingPerson = contacts.getOrPut(command.name) { Person(command.name) }
-//                        existingPerson.phone = command.phone
-//                        lastPerson = existingPerson
-//                    }
-//                }
-//                Help -> showCommands()
-//                Exit -> break
-//            }
-//        } catch (e: IllegalArgumentException) {
-//            println("Ошибка: ${e.message}")
-//        }
-//        lastPerson?.let { println("Последний добавленный человек: $it") } ?: println("Не инициализирован")
-//    }
-//}

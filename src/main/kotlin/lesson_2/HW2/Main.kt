@@ -1,5 +1,8 @@
 package lesson_2.HW2
 
+import lesson_2.HW2.Help.showCommands
+
+
 /**
  * За основу берём код решения домашнего задания из предыдущего семинара и дорабатываем его.
  *
@@ -27,76 +30,48 @@ package lesson_2.HW2
  * Если isValid для команды возвращает false, выводим help. Если true, обрабатываем команду внутри when.
  */
 //region sealed class
-sealed class Command {
-    abstract fun isValid(): Boolean
+sealed interface Command {
+    fun isValid(): Boolean
 }
 
 /**
  *  Класс данных, который представляет команды для добавления телефона
  */
-data class AddPhone(val name: String, val phone: String) : Command() {
+data class AddPhone(val name: String, val phone: String) : Command {
     override fun isValid() = Regex("""^\+\d+$""").matches(phone)
 }
 
 /**
  *  Класс данных, который представляет команды для добавления email
  */
-data class AddEmail(val name: String, val email: String) : Command() {
-    override fun isValid() = Regex("""^[a-zA-Z]+@[a-zA-Z]+\.[a-zA-Z]+$""").matches(email)
+data class AddEmail(var name: String, var email: String) : Command {
+    override fun isValid() = Regex("""^[a-zA-Zа-яА-Я0-9]+@[a-zA-Z]+\.[a-zA-Z]+$""").matches(email)
 }
 
 /**
  * Объект, который представляет команды помощи
  */
-object Help : Command() {
+data object Help : Command {
     override fun isValid() = true
+
+    /**
+     * Функция выводит список доступных команд
+     */
+    fun showCommands() {
+        val commands =
+            listOf("exit", "help", "add <Имя> phone <Номер телефона>", "add <Имя> email <Адрес электронной почты>")
+        println("Доступные команды: ${commands.joinToString(", ")}")
+    }
 }
 
 /**
  * Объект, который представляет команды выхода
  */
-object Exit : Command() {
+data object Exit : Command {
     override fun isValid() = true
 }
-//endregion
 
 data class Person(var name: String, var phone: String? = null, var email: String? = null)
-
-fun main() {
-    val contacts = mutableMapOf<String, Person>()
-    var lastPerson: Person? = null
-
-    while (true) {
-        try {
-            val command = readCommand()
-            if (!command.isValid()) {
-                showCommands()
-                continue
-            }
-
-            when (command) {
-                is Exit -> break
-                is Help -> showCommands()
-                is AddPhone -> {
-                    val person = contacts.getOrPut(command.name) { Person(command.name) }
-                    person.phone = command.phone
-                    lastPerson = person
-                    println("Добавлен контакт для ${person.name}: Телефон=${person.phone}")
-                }
-                is AddEmail -> {
-                    val person = contacts.getOrPut(command.name) { Person(command.name) }
-                    person.email = command.email
-                    lastPerson = person
-                    println("Добавлен контакт для ${person.name}: Email=${person.email}")
-                }
-            }
-        } catch (e: IllegalArgumentException) {
-            println("Ошибка: ${e.message}")
-        }
-    }
-
-    lastPerson?.let { println("Последний добавленный человек: $it") } ?: println("Не инициализирован")
-}
 
 /**
  * Функция считывает ввод пользователя
@@ -115,14 +90,68 @@ fun readCommand(): Command {
                 else -> throw IllegalArgumentException("Неверная команда")
             }
         }
+
         else -> throw IllegalArgumentException("Неверная команда")
     }
 }
 
-/**
- * Функция выводит список доступных команд
- */
-fun showCommands() {
-    val commands = listOf("exit", "help", "add <Имя> phone <Номер телефона>", "add <Имя> email <Адрес электронной почты>")
-    println("Доступные команды: ${commands.joinToString(", ")}")
+val contacts = mutableMapOf<String, Person>()
+
+fun main() {
+    var person: Person? = null
+    while (true) {
+        try {
+            val command = readCommand()
+            if (command.isValid()) {
+                when (command) {
+                    is AddEmail -> {
+                        person = contacts.getOrPut(command.name) { Person(command.name) }
+                        person.email = command.email
+                    }
+                    is AddPhone -> {
+                        person = contacts.getOrPut(command.name) { Person(command.name) }
+                        person.phone = command.phone
+                    }
+                    Help -> showCommands()
+                    Exit -> break
+                }
+                if (person != null) println("add ${person}")
+            }
+        } catch (e: IllegalArgumentException) {
+            println("Ошибка: ${e.message}")
+        }
+    }
 }
+
+
+//fun main() {
+//    val contacts = mutableMapOf<String, Person>()
+//    var lastPerson: Person? = null
+//
+//    while (true) {
+//        try {
+//            when (val command = readCommand()) {
+//                is AddEmail -> {
+//                    if (isValid()) {
+//                        val existingPerson = contacts.getOrPut(command.name) { Person(command.name) }
+//                        existingPerson.email = command.email
+//                        lastPerson = existingPerson
+//                    }
+//                }
+//
+//                is AddPhone -> {
+//                    if (isValid()) {
+//                        val existingPerson = contacts.getOrPut(command.name) { Person(command.name) }
+//                        existingPerson.phone = command.phone
+//                        lastPerson = existingPerson
+//                    }
+//                }
+//                Help -> showCommands()
+//                Exit -> break
+//            }
+//        } catch (e: IllegalArgumentException) {
+//            println("Ошибка: ${e.message}")
+//        }
+//        lastPerson?.let { println("Последний добавленный человек: $it") } ?: println("Не инициализирован")
+//    }
+//}

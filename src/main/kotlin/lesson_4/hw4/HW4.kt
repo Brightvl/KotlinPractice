@@ -96,59 +96,22 @@ data class Find(val value: String?) : Command {
 
     override fun execute() {
         val matchingContacts = contacts.filter {
-            it.value.phones.contains(value) || it.value.emails.contains(value) }
+            it.value.phones.contains(value) || it.value.emails.contains(value)
+        }
         if (matchingContacts.isNotEmpty()) {
             println("Найденные контакты:")
             for ((name, person) in matchingContacts) {
-                println("$name - Phones: ${
-                    person.phones.joinToString(", ")} - Emails: " +
-                        person.emails.joinToString(", ")
+                println(
+                    "$name - Phones: ${
+                        person.phones.joinToString(", ")
+                    } - Emails: " +
+                            person.emails.joinToString(", ")
                 )
             }
         } else {
             println("Контакты не найдены.")
         }
     }
-}
-
-data class Person(
-    var name: String,
-    var phones: MutableList<String> = mutableListOf(),
-    var emails: MutableList<String> = mutableListOf()
-)
-
-val contacts = mutableMapOf<String, Person>()
-
-// DSL для создания JSON
-sealed class JsonElement {
-    abstract fun toJson(): String
-}
-
-data class JsonObject(val entries: MutableMap<String, JsonElement> = mutableMapOf()) : JsonElement() {
-    override fun toJson() = entries.entries.joinToString(prefix = "{", postfix = "}") { "\"${it.key}\": ${it.value.toJson()}" }
-}
-
-data class JsonArray(val items: MutableList<JsonElement> = mutableListOf()) : JsonElement() {
-    override fun toJson() = items.joinToString(prefix = "[", postfix = "]") { it.toJson() }
-}
-
-data class JsonString(val value: String) : JsonElement() {
-    override fun toJson() = "\"$value\""
-}
-
-fun json(init: JsonObject.() -> Unit): JsonObject = JsonObject().apply(init)
-
-fun JsonObject.jsonObject(key: String, init: JsonObject.() -> Unit) {
-    entries[key] = JsonObject().apply(init)
-}
-
-fun JsonObject.jsonArray(key: String, init: JsonArray.() -> Unit) {
-    entries[key] = JsonArray().apply(init)
-}
-
-
-fun JsonArray.jsonString(value: String) {
-    items.add(JsonString(value))
 }
 
 data class Export(val path: String) : Command {
@@ -169,7 +132,48 @@ data class Export(val path: String) : Command {
         }
         File(path).writeText(json.toJson())
     }
+
+    sealed class JsonElement {
+        abstract fun toJson(): String
+    }
+
+    data class JsonObject(val entries: MutableMap<String, JsonElement> = mutableMapOf()) : JsonElement() {
+        override fun toJson() =
+            entries.entries.joinToString(prefix = "{", postfix = "}") { "\"${it.key}\": ${it.value.toJson()}" }
+    }
+
+    data class JsonArray(val items: MutableList<JsonElement> = mutableListOf()) : JsonElement() {
+        override fun toJson() = items.joinToString(prefix = "[", postfix = "]") { it.toJson() }
+    }
+
+    data class JsonString(val value: String) : JsonElement() {
+        override fun toJson() = "\"$value\""
+    }
+
+    fun json(init: JsonObject.() -> Unit): JsonObject = JsonObject().apply(init)
+
+    fun JsonObject.jsonObject(key: String, init: JsonObject.() -> Unit) {
+        entries[key] = JsonObject().apply(init)
+    }
+
+    fun JsonObject.jsonArray(key: String, init: JsonArray.() -> Unit) {
+        entries[key] = JsonArray().apply(init)
+    }
+
+
+    fun JsonArray.jsonString(value: String) {
+        items.add(JsonString(value))
+    }
+
 }
+
+data class Person(
+    var name: String,
+    var phones: MutableList<String> = mutableListOf(),
+    var emails: MutableList<String> = mutableListOf()
+)
+
+val contacts = mutableMapOf<String, Person>()
 
 
 fun readCommand(): Command {
@@ -186,6 +190,7 @@ fun readCommand(): Command {
                 else -> throw IllegalArgumentException("Неверная команда")
             }
         }
+
         "show" -> Show(input.getOrNull(1))
         "find" -> Find(input.getOrNull(1))
         "export" -> Export(input[1])
